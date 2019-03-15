@@ -1,0 +1,51 @@
+version: '2'
+
+networks:
+  dschang:
+    driver: dschang
+
+services:
+  # container pour la base de donnée
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    environment:
+      -  'MONGODB_USER=user'
+      -  'MONGODB_PASS=password!'
+    volumes:
+      - 'mongodb-data:/data/db'
+    ports:
+      - '27017:27017'
+    command: mongod --smallfiles
+
+  # container de mongoExpress
+  mongo-express:
+    container_name: mongo-express
+    links:
+      - 'mongodb:mongo'
+    ports:
+      - '8081:8081'
+    environment:
+      - 'ME_CONFIG_OPTIONS_EDITORTHEME=ambiance'
+      - 'ME_CONFIG_BASICAUTH_USERNAME=user'
+      - 'ME_CONFIG_BASICAUTH_PASSWORD=password!'
+    image: mongo-express
+
+  # Container de l'api
+  api:
+    container_name: dschang_api
+    build: api
+    volumes:
+      - ./api:/webapp
+    ports:
+      - 5000:80
+    restart: always
+    links:
+      - 'mongodb:mongo'
+
+volumes:
+  mongodb-data: {}
+
+
+
+# docker-compose up --build --force-recreate --renew-anon-volumes
